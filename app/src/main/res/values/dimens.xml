@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="tool_height">57dp</dimen>
+
+    <dimen name="front_small_size">15sp</dimen>
+
+    <dimen name="front_midd_size">18sp</dimen>
+
+    <dimen name="front_big_size">21sp</dimen>
+
+</resources>

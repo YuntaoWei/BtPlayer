@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">"BtPlayer"</string>
+
+    <string name="url_hint_msg">"请输入thunder/magnet/ftp/torrent链接"</string>
+
+    <string name="url_format_error">"无法解析这种类型的链接"</string>
+
+    <string name="button_download">"开始下载"</string>
+
+    <string name="button_select_file">"添加torrent"</string>
+
+    <string name="btn_home">"主页"</string>
+
+    <string name="btn_download">"下载列表"</string>
+
+    <string name="btn_user">"用户"</string>
+
+    <string name="url_is_null">"请输入链接再进行下载"</string>
+
+    <string name="task_error">"解析异常"</string>
+
+</resources>
