@@ -3,6 +3,7 @@ package com.ghost.thunder.download;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.text.TextUtils;
 
 import com.ghost.thunder.utils.LogPrinter;
 import com.ghost.thunder.utils.StorageUtils;
@@ -32,6 +33,8 @@ public class DownLoadUtil {
 
     private String savePath;
 
+    private String preFile;
+
     private Handler progressHandler = new Handler() {
 
         @Override
@@ -42,7 +45,11 @@ public class DownLoadUtil {
                     if (progressListener != null) {
                         XLTaskInfo taskInfo = XLTaskHelper.instance(globalContext).getTaskInfo(taskID);
                         if (taskInfo.mFileSize == taskInfo.mDownloadSize) {
-                            progressListener.onDonwloadEnd(savePath + "/" + taskInfo.mFileName);
+                            if(TextUtils.isEmpty(taskInfo.mFileName)) {
+                                progressListener.onDonwloadEnd(preFile);
+                            } else {
+                                progressListener.onDonwloadEnd(savePath + "/" + taskInfo.mFileName);
+                            }
                             return;
                         }
                         progressListener.onProgressChange(StorageUtils.convertFileSize(taskInfo.mFileSize)
@@ -84,16 +91,19 @@ public class DownLoadUtil {
     }
 
     public void startDownLoad(String url) throws Exception {
-        savePath = StorageUtils.getDefaultSavePath(globalContext);
+        savePath = StorageUtils.getDefaultSavePath(globalContext) + "/" + System.currentTimeMillis();
+        String tmpFileName = "tmp_" + System.currentTimeMillis();
+
+        preFile = savePath + "/" + tmpFileName;
         LogPrinter.i(TAG, "start download url : " + url + ", save path : " + savePath);
 
         if (url.startsWith(UrlType.TYPE_THUNDER_URL)) {
             taskID = XLTaskHelper.instance(globalContext)
-                    .addThunderTask(url, savePath, null);
+                    .addThunderTask(url, savePath, tmpFileName);
         } else if (url.startsWith(UrlType.TYPE_MAGNET_URL)) {
             taskID = XLTaskHelper.instance(globalContext)
-                    .addMagentTask(url, savePath, null);
-        } else if (url.endsWith(UrlType.TYPE_TORRENT_FILE)) {
+                    .addMagentTask(url, savePath, tmpFileName);
+        } else if (StorageUtils.isTorrentFile(url)) {
             taskID = XLTaskHelper.instance(globalContext)
                     .addTorrentTask(url, savePath, null);
         }

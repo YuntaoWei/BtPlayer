@@ -5,7 +5,12 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.text.TextUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Created by yuntao.wei on 2018/8/9.
@@ -14,6 +19,8 @@ import java.io.File;
  */
 
 public class StorageUtils {
+
+    private static final String TAG = "StorageUtils";
 
     private static final String DEFAULT_PATH = File.separator + "BtPlayer" + File.separator + "download";
     private static final String STORAGE_PREF_FILE_NAME = "storage";
@@ -67,6 +74,36 @@ public class StorageUtils {
             return String.format(f > 100 ? "%.0f K" : "%.1f K", f);
         } else
             return String.format("%d B", size);
+    }
+
+    public static boolean isTorrentFile(String path) {
+        File f = new File(path);
+        BufferedReader br = null;
+        if(f.exists()) {
+            try {
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+                String msg = br.readLine();
+                LogPrinter.i(TAG, "isTorrentFile : " + path + " \n" + msg);
+                if(!TextUtils.isEmpty(msg) && msg.contains("udp://tracker")) {
+                    return true;
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if(br != null) {
+                    try {
+                        br.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    br = null;
+                }
+            }
+        }
+
+        return false;
     }
 
 }

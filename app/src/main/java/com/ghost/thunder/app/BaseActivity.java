@@ -10,6 +10,7 @@ import com.ghost.thunder.demo.R;
 import com.ghost.thunder.download.DownLoadProgressListener;
 import com.ghost.thunder.utils.FragmentUtils;
 import com.ghost.thunder.utils.LogPrinter;
+import com.ghost.thunder.utils.StorageUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -93,7 +94,14 @@ public class BaseActivity extends PermissionActivity implements DownLoadProgress
 
     @Override
     public void onDonwloadEnd(String filePath) {
+        LogPrinter.i(TAG, "onDonwloadEnd -- > end file : " +
+                filePath + "   currentThread : " + Thread.currentThread().getName());
+        if(StorageUtils.isTorrentFile(filePath)) {
+            LogPrinter.i(TAG,"onDonwloadEnd is a torrent file, start new torrent task!");
 
+        } else {
+            LogPrinter.i(TAG,"onDonwloadEnd success");
+        }
     }
 
     @Override

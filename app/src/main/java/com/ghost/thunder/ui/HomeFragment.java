@@ -14,8 +14,10 @@ import android.widget.Toast;
 
 import com.ghost.thunder.app.MainActivity;
 import com.ghost.thunder.demo.R;
+import com.ghost.thunder.download.DownLoadProgressListener;
 import com.ghost.thunder.download.DownLoadUtil;
 import com.ghost.thunder.utils.LogPrinter;
+import com.ghost.thunder.utils.StorageUtils;
 import com.ghost.thunder.utils.UrlUtils;
 
 import butterknife.BindView;
@@ -27,7 +29,7 @@ import butterknife.Unbinder;
  * Created by wyt on 2018/8/9.
  */
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements DownLoadProgressListener {
 
     private static final String TAG = "HomeFragment";
 
@@ -79,14 +81,7 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        checkDonwloadUtil();
-        try {
-            downLoadUtil.startDownLoad(url, mainActivity);
-            LogPrinter.i(TAG, "url is valid");
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), R.string.task_error, Toast.LENGTH_SHORT).show();
-        }
+        startDownloadTask(url);
     }
 
     @OnClick(R.id.btn_select_file)
@@ -99,10 +94,38 @@ public class HomeFragment extends Fragment {
             downLoadUtil = DownLoadUtil.getInstance(getContext().getApplicationContext());
     }
 
+    private void startDownloadTask(String url) {
+        checkDonwloadUtil();
+        try {
+            downLoadUtil.startDownLoad(url, this);
+            LogPrinter.i(TAG, "url is valid");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), R.string.task_error, Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
     }
 
+    @Override
+    public void onProgressChange(String totalSize, String downloadedSize, String downSpeed) {
+        LogPrinter.i(TAG, "onProgressChange : " + totalSize + "  " +
+                downloadedSize + "  " + downSpeed + "  " + Thread.currentThread().getName());
+    }
+
+    @Override
+    public void onDonwloadEnd(String filePath) {
+        LogPrinter.i(TAG, "onDonwloadEnd -- > end file : " +
+                filePath + "   currentThread : " + Thread.currentThread().getName());
+        if(StorageUtils.isTorrentFile(filePath)) {
+            LogPrinter.i(TAG,"onDonwloadEnd is a torrent file, start new torrent task!");
+            startDownloadTask(filePath);
+        } else {
+            LogPrinter.i(TAG,"onDonwloadEnd success");
+        }
+    }
 }
