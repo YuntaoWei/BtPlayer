@@ -97,6 +97,8 @@ public class HomeFragment extends Fragment implements DownLoadProgressListener {
     private void startDownloadTask(String url) {
         checkDonwloadUtil();
         try {
+            downLoadUtil.getTaskInfo(url);
+
             downLoadUtil.startDownLoad(url, this);
             LogPrinter.i(TAG, "url is valid");
         } catch (Exception e) {

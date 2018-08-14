@@ -9,6 +9,8 @@ import com.ghost.thunder.utils.LogPrinter;
 import com.ghost.thunder.utils.StorageUtils;
 import com.ghost.thunder.utils.UrlType;
 import com.xunlei.downloadlib.XLTaskHelper;
+import com.xunlei.downloadlib.parameter.TorrentFileInfo;
+import com.xunlei.downloadlib.parameter.TorrentInfo;
 import com.xunlei.downloadlib.parameter.XLTaskInfo;
 
 /**
@@ -97,10 +99,10 @@ public class DownLoadUtil {
         preFile = savePath + "/" + tmpFileName;
         LogPrinter.i(TAG, "start download url : " + url + ", save path : " + savePath);
 
-        if (url.startsWith(UrlType.TYPE_THUNDER_URL)) {
+        if (UrlType.isThunderUrl(url) || UrlType.isHttpOrHttpsUrl(url) || UrlType.isFTPUrl(url)) {
             taskID = XLTaskHelper.instance(globalContext)
                     .addThunderTask(url, savePath, tmpFileName);
-        } else if (url.startsWith(UrlType.TYPE_MAGNET_URL)) {
+        } else if (UrlType.isMagnetUrl(url)) {
             taskID = XLTaskHelper.instance(globalContext)
                     .addMagentTask(url, savePath, tmpFileName);
         } else if (StorageUtils.isTorrentFile(url)) {
@@ -121,6 +123,33 @@ public class DownLoadUtil {
 
         if(progressListener != null) {
             progressHandler.sendEmptyMessageDelayed(TASK_UPDATE_PROGRESS, 1000);
+        }
+
+    }
+
+    public void getTaskInfo(String url) {
+
+        if(UrlType.isTorrentUrl(url)) {
+            TorrentInfo torrentInfo = XLTaskHelper.instance(globalContext).getTorrentInfo(url);
+            int fileCount = torrentInfo.mFileCount;
+            String fileHash = torrentInfo.mInfoHash;
+            boolean mutiFile = torrentInfo.mIsMultiFiles;
+            String mutiFileFolder = torrentInfo.mMultiFileBaseFolder;
+            TorrentFileInfo[] torrentFileInfos = torrentInfo.mSubFileInfo;
+            String subFileHash = "";
+            String subFileIndex = "";
+            String subFileName = "";
+            String subFilePath = "";
+            String subFilePlayUrl = "";
+            for (TorrentFileInfo f : torrentFileInfos) {
+                subFileHash += f.hash + " - ";
+                subFileIndex += f.mFileIndex + " - ";
+                subFileName += f.mFileName + " - ";
+                subFilePath += f.mSubPath + " - ";
+                subFilePlayUrl += f.playUrl + " - ";
+            }
+
+            LogPrinter.i(TAG, torrentInfo.toString());
         }
 
     }
