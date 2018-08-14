@@ -128,28 +128,14 @@ public class DownLoadUtil {
     }
 
     public void getTaskInfo(String url) {
+        XLTaskHelper xlTaskHelper = XLTaskHelper.instance(globalContext);
 
         if(UrlType.isTorrentUrl(url)) {
-            TorrentInfo torrentInfo = XLTaskHelper.instance(globalContext).getTorrentInfo(url);
-            int fileCount = torrentInfo.mFileCount;
-            String fileHash = torrentInfo.mInfoHash;
-            boolean mutiFile = torrentInfo.mIsMultiFiles;
-            String mutiFileFolder = torrentInfo.mMultiFileBaseFolder;
-            TorrentFileInfo[] torrentFileInfos = torrentInfo.mSubFileInfo;
-            String subFileHash = "";
-            String subFileIndex = "";
-            String subFileName = "";
-            String subFilePath = "";
-            String subFilePlayUrl = "";
-            for (TorrentFileInfo f : torrentFileInfos) {
-                subFileHash += f.hash + " - ";
-                subFileIndex += f.mFileIndex + " - ";
-                subFileName += f.mFileName + " - ";
-                subFilePath += f.mSubPath + " - ";
-                subFilePlayUrl += f.playUrl + " - ";
-            }
-
+            TorrentInfo torrentInfo = xlTaskHelper.getTorrentInfo(url);
             LogPrinter.i(TAG, torrentInfo.toString());
+        } else {
+            String fileName = xlTaskHelper.getFileName(url);
+            LogPrinter.i(TAG, fileName);
         }
 
     }

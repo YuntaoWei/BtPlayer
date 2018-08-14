@@ -9,9 +9,19 @@ public class TorrentInfo {
 
     @Override
     public String toString() {
+        StringBuilder childFileInfo = new StringBuilder();
+        childFileInfo.append("[");
+        for (TorrentFileInfo info : mSubFileInfo
+             ) {
+            childFileInfo.append(info.toString() + "\n");
+            childFileInfo.append("------------------------");
+        }
+        childFileInfo.append("]");
+
         return "file count : " + mFileCount + "\n"
                 + "Info Hash : " + mInfoHash + "\n"
                 + "is muti files : " + mIsMultiFiles + "\n"
-                + "muti file base folder : " + mMultiFileBaseFolder + "\n";
+                + "muti file base folder : " + mMultiFileBaseFolder + "\n"
+                + childFileInfo.toString();
     }
 }
