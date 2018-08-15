@@ -84,7 +84,7 @@ public class StorageUtils {
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
                 String msg = br.readLine();
                 LogPrinter.i(TAG, "isTorrentFile : " + path + " \n" + msg);
-                if(!TextUtils.isEmpty(msg) && msg.contains("udp://tracker")) {
+                if(!TextUtils.isEmpty(msg) && msg.contains("//tracker")) {
                     return true;
                 }
             } catch (FileNotFoundException e) {
@@ -101,6 +101,19 @@ public class StorageUtils {
                     br = null;
                 }
             }
+        }
+
+        return false;
+    }
+
+    public static boolean isCanPlay(long totalSize, long downloadSize) {
+        if(totalSize <= 0)
+            return false;
+
+        float rate = (downloadSize * 1.0f) / (totalSize * 1.0f);
+
+        if(downloadSize >= 1024 * 1024 * 50 || rate > 0.5f) {
+            return true;
         }
 
         return false;

@@ -10,6 +10,10 @@ public interface DownLoadProgressListener {
 
     void onProgressChange(String totalSize, String downloadedSize, String downSpeed);
 
+    void onProgressChangeRealSize(long totalSize, long downloadedSize, long downSpeed);
+
     void onDonwloadEnd(String filePath);
+
+    void onTaskStart(String fileName);
 
 }

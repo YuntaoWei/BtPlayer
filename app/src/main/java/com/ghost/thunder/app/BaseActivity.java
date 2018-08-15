@@ -7,10 +7,7 @@ import android.widget.Button;
 
 import com.ghost.thunder.adapter.MyPageAdapter;
 import com.ghost.thunder.demo.R;
-import com.ghost.thunder.download.DownLoadProgressListener;
 import com.ghost.thunder.utils.FragmentUtils;
-import com.ghost.thunder.utils.LogPrinter;
-import com.ghost.thunder.utils.StorageUtils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -22,7 +19,7 @@ import butterknife.Unbinder;
  * blog:http://blog.csdn.net/qq_17541215
  */
 
-public class BaseActivity extends PermissionActivity implements DownLoadProgressListener {
+public class BaseActivity extends PermissionActivity {
 
     static final String TAG = "BaseActivity";
 
@@ -84,23 +81,6 @@ public class BaseActivity extends PermissionActivity implements DownLoadProgress
 
                 break;
 
-        }
-    }
-
-    @Override
-    public void onProgressChange(String totalSize, String downloadedSize, String downSpeed) {
-        LogPrinter.i(TAG, "onProgressChange : " + totalSize + "  " + downloadedSize + "  " + downSpeed);
-    }
-
-    @Override
-    public void onDonwloadEnd(String filePath) {
-        LogPrinter.i(TAG, "onDonwloadEnd -- > end file : " +
-                filePath + "   currentThread : " + Thread.currentThread().getName());
-        if(StorageUtils.isTorrentFile(filePath)) {
-            LogPrinter.i(TAG,"onDonwloadEnd is a torrent file, start new torrent task!");
-
-        } else {
-            LogPrinter.i(TAG,"onDonwloadEnd success");
         }
     }
 

@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.ghost.thunder.app.MainActivity;
 import com.ghost.thunder.demo.R;
@@ -18,6 +19,7 @@ import com.ghost.thunder.download.DownLoadProgressListener;
 import com.ghost.thunder.download.DownLoadUtil;
 import com.ghost.thunder.utils.LogPrinter;
 import com.ghost.thunder.utils.StorageUtils;
+import com.ghost.thunder.utils.UrlType;
 import com.ghost.thunder.utils.UrlUtils;
 
 import butterknife.BindView;
@@ -47,6 +49,13 @@ public class HomeFragment extends Fragment implements DownLoadProgressListener {
     DownLoadUtil downLoadUtil;
 
     MainActivity mainActivity;
+
+    @BindView(R.id.video_view)
+    VideoView mVideoView;
+
+    boolean canPlay = false;
+
+    boolean isTorrent = false;
 
     @Override
     public void onAttach(Context context) {
@@ -86,7 +95,11 @@ public class HomeFragment extends Fragment implements DownLoadProgressListener {
 
     @OnClick(R.id.btn_select_file)
     public void startSelectTorrentFile() {
-
+        if(canPlay) {
+            LogPrinter.i(TAG, "can play!");
+        } else {
+            LogPrinter.i(TAG, "can not play!");
+        }
     }
 
     private void checkDonwloadUtil() {
@@ -114,9 +127,25 @@ public class HomeFragment extends Fragment implements DownLoadProgressListener {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if(downLoadUtil != null) {
+            downLoadUtil.stopTask();
+        }
+    }
+
+    @Override
     public void onProgressChange(String totalSize, String downloadedSize, String downSpeed) {
         LogPrinter.i(TAG, "onProgressChange : " + totalSize + "  " +
                 downloadedSize + "  " + downSpeed + "  " + Thread.currentThread().getName());
+    }
+
+    @Override
+    public void onProgressChangeRealSize(long totalSize, long downloadedSize, long downSpeed) {
+        if(StorageUtils.isCanPlay(totalSize, downloadedSize))
+            canPlay = true;
+        else
+            canPlay = false;
     }
 
     @Override
@@ -130,4 +159,16 @@ public class HomeFragment extends Fragment implements DownLoadProgressListener {
             LogPrinter.i(TAG,"onDonwloadEnd success");
         }
     }
+
+    @Override
+    public void onTaskStart(String fileName) {
+        LogPrinter.i(TAG, "OnTaskStart : " + fileName);
+        if(UrlType.isTorrentUrl(fileName)) {
+            isTorrent = true;
+        } else {
+            isTorrent = false;
+        }
+
+    }
+
 }

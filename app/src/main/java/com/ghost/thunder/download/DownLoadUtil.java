@@ -9,9 +9,10 @@ import com.ghost.thunder.utils.LogPrinter;
 import com.ghost.thunder.utils.StorageUtils;
 import com.ghost.thunder.utils.UrlType;
 import com.xunlei.downloadlib.XLTaskHelper;
-import com.xunlei.downloadlib.parameter.TorrentFileInfo;
 import com.xunlei.downloadlib.parameter.TorrentInfo;
 import com.xunlei.downloadlib.parameter.XLTaskInfo;
+
+import java.io.File;
 
 /**
  * Created by yuntao.wei on 2018/8/9.
@@ -37,6 +38,8 @@ public class DownLoadUtil {
 
     private String preFile;
 
+    private boolean dstFileIsTorrentFileTask;
+
     private Handler progressHandler = new Handler() {
 
         @Override
@@ -47,13 +50,17 @@ public class DownLoadUtil {
                     if (progressListener != null) {
                         XLTaskInfo taskInfo = XLTaskHelper.instance(globalContext).getTaskInfo(taskID);
                         if (taskInfo.mFileSize == taskInfo.mDownloadSize) {
-                            if(TextUtils.isEmpty(taskInfo.mFileName)) {
+                            if (TextUtils.isEmpty(taskInfo.mFileName)) {
                                 progressListener.onDonwloadEnd(preFile);
                             } else {
                                 progressListener.onDonwloadEnd(savePath + "/" + taskInfo.mFileName);
                             }
                             return;
                         }
+
+                        progressListener.onProgressChangeRealSize(taskInfo.mFileSize,
+                                taskInfo.mDownloadSize, taskInfo.mDownloadSpeed);
+
                         progressListener.onProgressChange(StorageUtils.convertFileSize(taskInfo.mFileSize)
                                 , StorageUtils.convertFileSize(taskInfo.mDownloadSize)
                                 , StorageUtils.convertFileSize(taskInfo.mDownloadSpeed));
@@ -61,7 +68,6 @@ public class DownLoadUtil {
                     }
                     break;
                 }
-
 
 
             }
@@ -75,10 +81,10 @@ public class DownLoadUtil {
 
     public static DownLoadUtil getInstance(Context ctx) {
 
-        if(mInstance == null) {
+        if (mInstance == null) {
             synchronized (DownLoadUtil.class) {
 
-                if(mInstance == null)
+                if (mInstance == null)
                     mInstance = new DownLoadUtil(ctx);
 
             }
@@ -93,18 +99,27 @@ public class DownLoadUtil {
     }
 
     public void startDownLoad(String url) throws Exception {
-        savePath = StorageUtils.getDefaultSavePath(globalContext) + "/" + System.currentTimeMillis();
-        String tmpFileName = "tmp_" + System.currentTimeMillis();
+        savePath = StorageUtils.getDefaultSavePath(globalContext);
+        String fileName = null;
+        if (UrlType.isTorrentUrl(url)) {
+            TorrentInfo info = getTorrentInfo(url);
+            savePath += "/" + info.mMultiFileBaseFolder;
+            File f = new File(savePath);
+            f.mkdirs();
+            fileName = null;
+        } else {
+            fileName = getFileName(url);
+        }
 
-        preFile = savePath + "/" + tmpFileName;
+        preFile = savePath + (fileName == null ? "" : "/" + fileName);
         LogPrinter.i(TAG, "start download url : " + url + ", save path : " + savePath);
 
         if (UrlType.isThunderUrl(url) || UrlType.isHttpOrHttpsUrl(url) || UrlType.isFTPUrl(url)) {
             taskID = XLTaskHelper.instance(globalContext)
-                    .addThunderTask(url, savePath, tmpFileName);
+                    .addThunderTask(url, savePath, fileName);
         } else if (UrlType.isMagnetUrl(url)) {
             taskID = XLTaskHelper.instance(globalContext)
-                    .addMagentTask(url, savePath, tmpFileName);
+                    .addMagentTask(url, savePath, fileName);
         } else if (StorageUtils.isTorrentFile(url)) {
             taskID = XLTaskHelper.instance(globalContext)
                     .addTorrentTask(url, savePath, null);
@@ -121,23 +136,42 @@ public class DownLoadUtil {
 
     public void updateProgress() {
 
-        if(progressListener != null) {
+        if (progressListener != null) {
             progressHandler.sendEmptyMessageDelayed(TASK_UPDATE_PROGRESS, 1000);
         }
 
     }
 
+    public void stopTask() {
+        XLTaskInfo taskInfo = XLTaskHelper.instance(globalContext).getTaskInfo(taskID);
+        int status = taskInfo.mTaskStatus;
+        LogPrinter.i(TAG, "stopTask -- > taskStatus : " + status);
+        XLTaskHelper.instance(globalContext).stopTask(taskID);
+    }
+
     public void getTaskInfo(String url) {
         XLTaskHelper xlTaskHelper = XLTaskHelper.instance(globalContext);
 
-        if(UrlType.isTorrentUrl(url)) {
+        if (UrlType.isTorrentUrl(url)) {
             TorrentInfo torrentInfo = xlTaskHelper.getTorrentInfo(url);
             LogPrinter.i(TAG, torrentInfo.toString());
         } else {
             String fileName = xlTaskHelper.getFileName(url);
+            if (fileName.endsWith(".torrent"))
+                dstFileIsTorrentFileTask = true;
             LogPrinter.i(TAG, fileName);
         }
+    }
 
+    private TorrentInfo getTorrentInfo(String url) {
+        XLTaskHelper xlTaskHelper = XLTaskHelper.instance(globalContext);
+        TorrentInfo torrentInfo = xlTaskHelper.getTorrentInfo(url);
+        return torrentInfo;
+    }
+
+    private String getFileName(String url) {
+        XLTaskHelper xlTaskHelper = XLTaskHelper.instance(globalContext);
+        return xlTaskHelper.getFileName(url);
     }
 
 }
